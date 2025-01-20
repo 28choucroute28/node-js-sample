@@ -1,0 +1,50 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: cimg/node:14 # Utilise Node.js 14 comme dans ton Dockerfile
+    steps:
+      - checkout
+      - run:
+          name: Set up Docker
+          command: |
+            docker --version
+      - run:
+          name: Build Docker image
+          command: |
+            docker build -t my-app .
+      - run:
+          name: Run Docker container
+          command: |
+            docker run -d -p 8080:8080 --name my-app-container my-app
+            sleep 5 # Attendre que l'application démarre
+      - run:
+          name: Test if Docker container is running
+          command: |
+            curl --fail http://localhost:8080 || exit 1 # Tester la route principale ou de santé
+
+  push:
+    docker:
+      - image: cimg/node:14 # Même environnement que celui utilisé pour construire
+    steps:
+      - checkout
+      - run:
+          name: Log in to DockerHub
+          command: |
+            echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
+      - run:
+          name: Push Docker image
+          command: |
+            docker tag my-app $DOCKER_USERNAME/my-app:latest
+            docker push $DOCKER_USERNAME/my-app:latest
+
+workflows:
+  version: 2
+  build_and_push:
+    jobs:
+      - build
+      - push:
+          requires:
+            - build
+
