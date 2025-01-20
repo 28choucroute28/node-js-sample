@@ -20,7 +20,7 @@ jobs:
       - run:
           name: Run Docker container
           command: |
-            docker run -d -p 8080:8080 --name my-node-app my-app
+            docker run -d -p 8080:8080 --name my-node-app my-node-app
             sleep 5 # Attendre que l'application démarre
       - run:
           name: Test if Docker container is running
